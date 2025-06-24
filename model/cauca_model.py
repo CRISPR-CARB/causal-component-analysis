@@ -196,7 +196,6 @@ class CauCAModel(pl.LightningModule, ABC):
                 optimizer,
                 T_max=self.trainer.max_epochs,
                 eta_min=self.lr_min,
-                verbose=True,
             )
             lr_scheduler_config = {
                 "scheduler": lr_scheduler,
