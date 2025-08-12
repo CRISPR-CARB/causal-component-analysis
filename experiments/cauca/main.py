@@ -10,7 +10,6 @@ from data_generator import MultiEnvDataModule, make_multi_env_dgp
 from model.cauca_model import LinearCauCAModel, NaiveNonlinearModel, NonlinearCauCAModel
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(
         description="Run experiment for Causal Component Analysis (CauCA)."
     )
@@ -25,6 +24,24 @@ if __name__ == "__main__":
         type=str,
         default="gpu",
         help="Accelerator to use for training.",
+    )
+    parser.add_argument(
+        "--devices",
+        type=int,
+        default=1,
+        help="Number of devices (GPUs/CPUs) per node to use.",
+    )
+    parser.add_argument(
+        "--num-nodes",
+        type=int,
+        default=1,
+        help="Number of nodes to use for distributed training.",
+    )
+    parser.add_argument(
+        "--strategy",
+        type=str,
+        default="auto",
+        help="Distributed strategy to use (e.g., 'ddp', 'auto').",
     )
     parser.add_argument(
         "--batch-size",
@@ -232,9 +249,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.function_misspec:
-        assert (
-            args.mixing == "nonlinear" and args.model == "linear"
-        ), "Function not misspecified."
+        assert args.mixing == "nonlinear" and args.model == "linear", (
+            "Function not misspecified."
+        )
 
     if args.wandb:
         wandb_logger = WandbLogger(project=args.wandb_project)
@@ -334,6 +351,9 @@ if __name__ == "__main__":
         callbacks=[checkpoint_callback] if args.wandb else [],
         check_val_every_n_epoch=args.check_val_every_n_epoch,
         accelerator=args.accelerator,
+        devices=args.devices,
+        num_nodes=args.num_nodes,
+        strategy=args.strategy,
     )
     trainer.fit(
         model,
